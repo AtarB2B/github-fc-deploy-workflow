@@ -1,0 +1,39 @@
+name: Deploy Feature Candidate
+
+description: Deploy Feature Candidate
+
+inputs:
+  tag:
+    required: true
+    description: tag
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Update Library
+      run: |
+        echo "${{secrets.SSH_PRIV_KEY_LIBRARY}}" > ssh-rsa.key
+        chmod 400 ssh-rsa.key
+        mkdir /root/.ssh && touch /root/.ssh/known_hosts
+        eval $(ssh-agent) && ssh-add ssh-rsa.key
+        ssh-keyscan -H github.com >> /root/.ssh/known_hosts
+        chmod +x ./update_library.sh && ./update_library.sh -s
+        cat ./library/requirements.txt >> requirements.txt
+
+    - name: GCloud Deploy - HML
+      run: echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
+
+    - name: Deploy ATAR_DEV ${{github.event.repository.name}}
+      run: ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.dev.yaml -v=main --no-promote
+
+    - name: Send Message to Slack
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{job.status}}
+        username: "DEPLOY_FC|${{github.event.repository.name}}|${{ inputs.tag }}"
+        author_name: ${{github.workflow}}
+        fields: repo,message,commit,author,action,eventName,ref,workflow,job,took,pullRequest
+      if: always()
