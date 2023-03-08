@@ -3,9 +3,24 @@ name: Deploy Feature Candidate
 description: Deploy Feature Candidate
 
 inputs:
-  tag:
+  SSH_PRIV_KEY_LIBRARY:
     required: true
-    description: tag
+    description: SSH_PRIV_KEY_LIBRARY
+  GITHUB_TOKEN:
+    required: true
+    description: token
+  ATAR_PROJECT_DEV:
+    required: true
+    description: ATAR_PROJECT_DEV
+  ATAR_CREDENTIALS_DEV:
+    required: true
+    description: ATAR_CREDENTIALS_DEV
+  SLACK_WEBHOOK_URL:
+    required: true
+    description: SLACK_WEBHOOK_URL
+  RETRY:
+    required: true
+    description: RETRY
 
 runs:
   using: "composite"
@@ -15,19 +30,22 @@ runs:
 
     - name: Update Library
       run: |
-        echo "${{secrets.SSH_PRIV_KEY_LIBRARY}}" > ssh-rsa.key
+        echo "${{ inputs.SSH_PRIV_KEY_LIBRARY }}" > ssh-rsa.key
         chmod 400 ssh-rsa.key
         mkdir /root/.ssh && touch /root/.ssh/known_hosts
         eval $(ssh-agent) && ssh-add ssh-rsa.key
         ssh-keyscan -H github.com >> /root/.ssh/known_hosts
         chmod +x ./update_library.sh && ./update_library.sh -s
         cat ./library/requirements.txt >> requirements.txt
+      shell: bash
 
     - name: GCloud Deploy - HML
-      run: echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
+      run: echo ${{ inputs.ATAR_CREDENTIALS_DEV }}|gcloud auth activate-service-account --key-file=-
+      shell: bash
 
     - name: Deploy ATAR_DEV ${{github.event.repository.name}}
-      run: ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.dev.yaml -v=main --no-promote
+      run: ${{ inputs.RETRY }} gcloud -q --project=${{ inputs.ATAR_PROJECT_DEV }} app deploy app.dev.yaml -v=main --no-promote
+      shell: bash
 
     - name: Send Message to Slack
       uses: 8398a7/action-slack@v3
