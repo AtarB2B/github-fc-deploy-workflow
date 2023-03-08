@@ -1,6 +1,6 @@
 name: Deploy Feature Candidate
 
-description: Deploy Feature Candidate
+description: Deploy Feature Candidate / FC
 
 inputs:
   SSH_PRIV_KEY_LIBRARY:
