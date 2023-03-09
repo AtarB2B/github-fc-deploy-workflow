@@ -3,6 +3,12 @@ name: Deploy Feature Candidate
 description: Deploy Feature Candidate / FC
 
 inputs:
+  ENV_DEPLOY:
+    required: true
+    description: ENV
+  VERSION:
+    required: true
+    description: VERSION
   SSH_PRIV_KEY_LIBRARY:
     required: true
     description: SSH_PRIV_KEY_LIBRARY
@@ -44,7 +50,7 @@ runs:
       shell: bash
 
     - name: Deploy ATAR_DEV ${{github.event.repository.name}}
-      run: ${{ inputs.RETRY }} gcloud -q --project=${{ inputs.ATAR_PROJECT_DEV }} app deploy app.dev.yaml -v=main --no-promote
+      run: ${{ inputs.RETRY }} gcloud -q --project=${{ inputs.ATAR_PROJECT_DEV }} app deploy app.${{ inputs.ENV_DEPLOY }}.yaml -v=${{ inputs.VERSION }} --no-promote
       shell: bash
 
     - name: Send Message to Slack
