@@ -37,16 +37,16 @@ runs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Update Library
-      run: |
-        echo "${{ inputs.SSH_PRIV_KEY_LIBRARY }}" > ssh-rsa.key
-        chmod 400 ssh-rsa.key
-        mkdir /root/.ssh && touch /root/.ssh/known_hosts
-        eval $(ssh-agent) && ssh-add ssh-rsa.key
-        ssh-keyscan -H github.com >> /root/.ssh/known_hosts
-        chmod +x ./update_library.sh && ./update_library.sh -s
-        cat ./library/requirements.txt >> requirements.txt
-      shell: bash
+    # - name: Update Library
+    #   run: |
+    #     echo "${{ inputs.SSH_PRIV_KEY_LIBRARY }}" > ssh-rsa.key
+    #     chmod 400 ssh-rsa.key
+    #     mkdir /root/.ssh && touch /root/.ssh/known_hosts
+    #     eval $(ssh-agent) && ssh-add ssh-rsa.key
+    #     ssh-keyscan -H github.com >> /root/.ssh/known_hosts
+    #     chmod +x ./update_library.sh && ./update_library.sh -s
+    #     cat ./library/requirements.txt >> requirements.txt
+    #   shell: bash
 
     - name: GCloud Deploy - HML
       run: echo ${{ inputs.ATAR_CREDENTIALS_DEV }}|gcloud auth activate-service-account --key-file=-
