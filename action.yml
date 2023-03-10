@@ -12,9 +12,6 @@ inputs:
   TAG:
     required: true
     description: TAG
-  SSH_PRIV_KEY_LIBRARY:
-    required: true
-    description: SSH_PRIV_KEY_LIBRARY
   GITHUB_TOKEN:
     required: true
     description: token
