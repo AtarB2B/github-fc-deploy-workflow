@@ -37,23 +37,10 @@ runs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    # - name: Update Library
-    #   run: |
-    #     echo "${{ inputs.SSH_PRIV_KEY_LIBRARY }}" > ssh-rsa.key
-    #     chmod 400 ssh-rsa.key
-    #     mkdir /root/.ssh && touch /root/.ssh/known_hosts
-    #     eval $(ssh-agent) && ssh-add ssh-rsa.key
-    #     ssh-keyscan -H github.com >> /root/.ssh/known_hosts
-    #     chmod +x ./update_library.sh && ./update_library.sh -s
-    #     cat ./library/requirements.txt >> requirements.txt
-    #   shell: bash
-
-    - name: GCloud Deploy - HML
-      run: echo ${{ inputs.ATAR_CREDENTIALS_DEV }}|gcloud auth activate-service-account --key-file=-
-      shell: bash
-
-    - name: Deploy ATAR_DEV ${{github.event.repository.name}}
-      run: ${{ inputs.RETRY }} gcloud -q --project=${{ inputs.ATAR_PROJECT_DEV }} app deploy app.${{ inputs.ENV_DEPLOY }}.yaml -v=${{ inputs.VERSION }} --no-promote
+    - name: Deploy AppEngine ${{github.event.repository.name}} - ${{env.TAG}}
+      run: |
+        echo $PORTO_CREDENTIALS|gcloud auth activate-service-account --key-file=-
+        ${RETRY} gcloud -q --project=${{ inputs.ATAR_PROJECT_DEV }} app deploy app.${{ inputs.ENV_DEPLOY }}.yaml -v=${{env.TAG}} --promote
       shell: bash
 
     - name: Send Message to Slack
