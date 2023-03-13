@@ -6,9 +6,6 @@ inputs:
   ENV_DEPLOY:
     required: true
     description: ENV
-  VERSION:
-    required: true
-    description: VERSION
   TAG:
     required: true
     description: TAG
@@ -37,7 +34,7 @@ runs:
     - name: Deploy AppEngine ${{github.event.repository.name}} - ${{ inputs.TAG }}
       run: |
         echo ${{ inputs.ATAR_CREDENTIALS_DEV }}|gcloud auth activate-service-account --key-file=-
-        ${{ inputs.RETRY }} gcloud -q --project=${{ inputs.ATAR_PROJECT_DEV }} app deploy app.${{ inputs.ENV_DEPLOY }}.yaml -v=${{ inputs.TAG }} --promote
+        ${{ inputs.RETRY }} gcloud -q --project=${{ inputs.ATAR_PROJECT_DEV }} app deploy app.${{ inputs.ENV_DEPLOY }}.yaml -v=${{ inputs.TAG }} --no-promote
       shell: bash
 
     # - name: Send Message to Slack
