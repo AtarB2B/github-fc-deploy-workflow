@@ -12,12 +12,12 @@ inputs:
   GITHUB_TOKEN:
     required: true
     description: token
-  ATAR_PROJECT_DEV:
+  ATAR_PROJECT:
     required: true
-    description: ATAR_PROJECT_DEV
-  ATAR_CREDENTIALS_DEV:
+    description: ATAR_PROJECT
+  ATAR_CREDENTIALS:
     required: true
-    description: ATAR_CREDENTIALS_DEV
+    description: ATAR_CREDENTIALS
   SLACK_WEBHOOK_URL:
     required: true
     description: SLACK_WEBHOOK_URL
@@ -31,10 +31,10 @@ runs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Deploy AppEngine ${{github.event.repository.name}} - ${{ inputs.TAG }}
+    - name: Deploy AppEngine ${{github.event.repository.name}}
       run: |
-        echo ${{ inputs.ATAR_CREDENTIALS_DEV }}|gcloud auth activate-service-account --key-file=-
-        ${{ inputs.RETRY }} gcloud -q --project=${{ inputs.ATAR_PROJECT_DEV }} app deploy app.${{ inputs.ENV_DEPLOY }}.yaml -v=${{ inputs.TAG }} --no-promote
+        echo ${{ inputs.ATAR_CREDENTIALS }}|gcloud auth activate-service-account --key-file=-
+        ${{ inputs.RETRY }} gcloud -q --project=${{ inputs.ATAR_PROJECT }} app deploy app.${{ inputs.ENV_DEPLOY }}.yaml -v=testepipeline --no-promote
       shell: bash
 
     # - name: Send Message to Slack
