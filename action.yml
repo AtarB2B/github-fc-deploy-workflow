@@ -16,15 +16,6 @@ runs:
     - name: Git checkout
       uses: actions/checkout@v3
 
-    - name: Check Current Branch
-      id: current
-      run: |
-        git config user.name "GitHub Actions Bot"
-        git config user.email "devops@atarb2b.com"
-        echo "CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
-        echo "BRANCH="$(echo $CURRENT_BRANCH | cut -c 4-)"" >> $GITHUB_ENV
-      shell: bash
-
     - name: GCloud Deploy
       run: |
         echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
@@ -32,9 +23,8 @@ runs:
     
     - name: Deploy ${{github.event.repository.name}}
       run: |
-        echo ${{ GITHUB.REF_NAME }}
-        echo ${GITHUB_REF#refs/heads/}
-        ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.${{ inputs.DEPLOY_ENV }}.yaml -v=${{ GITHUB.REF_NAME }} --no-promote
+        echo "BRANCH="$(echo ${{ GITHUB.REF_NAME }} | cut -c 4-)"" >> $GITHUB_ENV
+        ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.${{ inputs.DEPLOY_ENV }}.yaml -v=${{ env.BRANCH }} --no-promote
       shell: bash
 
     # - name: Send Message to Slack
