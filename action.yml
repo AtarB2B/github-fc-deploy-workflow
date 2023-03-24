@@ -3,38 +3,41 @@ name: Deploy Feature Candidate
 description: Deploy Feature Candidate / FC
 
 inputs:
-  ENV_DEPLOY:
+  DEPLOY_ENV:
     required: true
     description: ENV
-  TAG:
-    required: true
-    description: TAG
-  GITHUB_TOKEN:
-    required: true
-    description: token
-  ATAR_PROJECT:
-    required: true
-    description: ATAR_PROJECT
-  ATAR_CREDENTIALS:
-    required: true
-    description: ATAR_CREDENTIALS
-  SLACK_WEBHOOK_URL:
-    required: true
-    description: SLACK_WEBHOOK_URL
-  RETRY:
-    required: true
-    description: RETRY
 
 runs:
   using: "composite"
   steps:
-    - name: Checkout
+    - name: Git checkout
       uses: actions/checkout@v3
+      with:
+        ref: "main"
 
-    - name: Deploy AppEngine ${{github.event.repository.name}}
+    - name: Find Latest Release Branch
+      id: release-branch-finder
+      uses: jsryudev/release-branch-finder@v0.1.0
+      with:
+        repo-token: ${{ inputs.GITHUB_TOKEN }}
+        release-branch-prefix: fc
+
+    - name: Set Vars
       run: |
-        echo ${{ inputs.ATAR_CREDENTIALS }}|gcloud auth activate-service-account --key-file=-
-        ${{ inputs.RETRY }} gcloud -q --project=${{ inputs.ATAR_PROJECT }} app deploy app.${{ inputs.ENV_DEPLOY }}.yaml -v=testepipeline --no-promote
+        echo "CURRENT_DATE=$(date +'%Y-%m-%d %H:%M')" >> $GITHUB_ENV
+        echo "BRANCH="$(echo ${{ steps.release-branch-finder.outputs.release-branch }} | cut -c 4-)"" >> $GITHUB_ENV
+      shell: bash
+
+    - name: GCloud Deploy
+      run: |
+        echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
+      shell: bash
+    
+    - name: Deploy ${{github.event.repository.name}}
+      run: |
+        OLD_TAG=${{env.BRANCH}} 
+        TAG="${OLD_TAG//./-}"
+        ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.${{ inputs.DEPLOY_ENV }}.yaml -v=$TAG --no-promote
       shell: bash
 
     # - name: Send Message to Slack
