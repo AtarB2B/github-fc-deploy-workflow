@@ -34,7 +34,7 @@ runs:
     
     - name: Deploy ${{github.event.repository.name}}
       run: |
-        ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.${{ inputs.DEPLOY_ENV }}.yaml -v=${{env.BRANCH}}--no-promote
+        ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.${{ inputs.DEPLOY_ENV }}.yaml -v=${{env.BRANCH}} --no-promote
       shell: bash
 
     # - name: Send Message to Slack
