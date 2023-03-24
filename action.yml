@@ -6,6 +6,9 @@ inputs:
   DEPLOY_ENV:
     required: true
     description: ENV
+  GITHUB_TOKEN:
+    required: true
+    description: token
 
 runs:
   using: "composite"
