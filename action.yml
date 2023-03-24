@@ -15,8 +15,6 @@ runs:
   steps:
     - name: Git checkout
       uses: actions/checkout@v3
-      with:
-        ref: "main"
 
     - name: Check Current Branch
       id: current
@@ -34,6 +32,7 @@ runs:
     
     - name: Deploy ${{github.event.repository.name}}
       run: |
+        echo ${{env.BRANCH}}
         ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.${{ inputs.DEPLOY_ENV }}.yaml -v=${{env.BRANCH}} --no-promote
       shell: bash
 
