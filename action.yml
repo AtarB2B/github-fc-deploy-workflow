@@ -23,7 +23,7 @@ runs:
       run: |
         git config user.name "GitHub Actions Bot"
         git config user.email "devops@atarb2b.com"
-        echo "CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_OUTPUT
+        echo "CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
         echo "BRANCH="$(echo $CURRENT_BRANCH | cut -c 4-)"" >> $GITHUB_ENV
       shell: bash
 
