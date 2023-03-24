@@ -32,8 +32,9 @@ runs:
     
     - name: Deploy ${{github.event.repository.name}}
       run: |
-        echo ${{env.BRANCH}}
-        ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.${{ inputs.DEPLOY_ENV }}.yaml -v=${{env.BRANCH}} --no-promote
+        echo ${{ GITHUB.REF_NAME }}
+        echo ${GITHUB_REF#refs/heads/}
+        ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.${{ inputs.DEPLOY_ENV }}.yaml -v=${{ GITHUB.REF_NAME }} --no-promote
       shell: bash
 
     # - name: Send Message to Slack
