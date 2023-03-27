@@ -23,7 +23,7 @@ runs:
 
     - name: GAE Version
       run: |
-        gcloud app versions list --service ${{ inputs.SVC_NAME }} --format="value(version.id)" --sort-by="~version.createTime" | tail -n +2 | xargs -r gcloud app versions delete --quiet
+        gcloud app versions list --project=${ATAR_PROJECT_DEV} --service ${{ inputs.SVC_NAME }} --format="value(version.id)" --sort-by="~version.createTime" | tail -n +2 | xargs -r gcloud app versions delete --project=${ATAR_PROJECT_DEV} --quiet
       shell: bash
     
     - name: GAE Deploy ${{github.event.repository.name}}
