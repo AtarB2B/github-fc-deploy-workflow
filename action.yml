@@ -16,6 +16,15 @@ runs:
     - name: Git checkout
       uses: actions/checkout@v3
 
+    - name: Delete GAE versions
+      uses: vijayp23/delete-gae-version-action@1.0.0
+      with:
+        service-account: ${ATAR_CREDENTIALS_DEV}
+        project-id: ${ATAR_PROJECT_DEV}
+        service-name: authorizer-teste
+        retain-versions: 1
+        debug: true
+
     - name: GCloud Deploy
       run: |
         echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
