@@ -6,9 +6,9 @@ inputs:
   DEPLOY_ENV:
     required: true
     description: ENV
-  GITHUB_TOKEN:
+  SVC_NAME:
     required: true
-    description: token
+    description: Name service
 
 runs:
   using: "composite"
@@ -16,21 +16,17 @@ runs:
     - name: Git checkout
       uses: actions/checkout@v3
 
-    - name: Delete GAE versions
-      uses: vijayp23/delete-gae-version-action@1.0.0
-      with:
-        service-account: ${ATAR_CREDENTIALS_DEV}
-        project-id: ${ATAR_PROJECT_DEV}
-        service-name: authorizer-teste
-        retain-versions: 1
-        debug: true
-
-    - name: GCloud Deploy
+    - name: GAE Key
       run: |
         echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
       shell: bash
+
+    - name: GAE Version
+      run: |
+        gcloud app versions list --service ${{ inputs.SVC_NAME }} --format="value(version.id)" --sort-by="~version.createTime" | tail -n +2 | xargs -r gcloud app versions delete --quiet
+      shell: bash
     
-    - name: Deploy ${{github.event.repository.name}}
+    - name: GAE Deploy ${{github.event.repository.name}}
       run: |
         BRANCH=$(echo ${GITHUB_REF#refs/heads/fc/})
         echo $BRANCH
