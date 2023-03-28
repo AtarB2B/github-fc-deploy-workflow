@@ -20,17 +20,24 @@ runs:
       run: |
         echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
       shell: bash
-
-    - name: GAE Version
-      run: |
-        gcloud app versions list --project=${ATAR_PROJECT_DEV} --service ${{ inputs.SVC_NAME }} --format="value(version.id)" --sort-by="~version.createTime" | tail -n +2 | xargs -r gcloud app versions delete --project=${ATAR_PROJECT_DEV} --quiet
-      shell: bash
     
     - name: GAE Deploy ${{github.event.repository.name}}
       run: |
         BRANCH=$(echo ${GITHUB_REF#refs/heads/fc/})
         echo $BRANCH
         ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.${{ inputs.DEPLOY_ENV }}.yaml -v=$BRANCH --no-promote
+      shell: bash
+
+    - name: Set New Traffic
+      run: |
+        OLD_TAG=${{env.BRANCH}} 
+        TAG="${OLD_TAG//./-}"
+        ${RETRY} gcloud app services set-traffic ${{ inputs.SVC_NAME }} --splits $TAG=1 --quiet
+      shell: bash
+
+    - name: GAE Version
+      run: |
+        gcloud app versions list --project=${ATAR_PROJECT_DEV} --service ${{ inputs.SVC_NAME }} --format="value(version.id)" --sort-by="~version.createTime" | tail -n +2 | xargs -r gcloud app versions delete --project=${ATAR_PROJECT_DEV} --quiet
       shell: bash
 
     # - name: Send Message to Slack
