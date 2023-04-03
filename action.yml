@@ -27,16 +27,7 @@ runs:
         ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.${{ inputs.DEPLOY_ENV }}.yaml -v=$BRANCH --no-promote
       shell: bash
 
-    - name: GAE Version
-      run: |
-        gcloud app versions list --project=${ATAR_PROJECT_DEV} --service ${{ inputs.SVC_NAME }} --format="value(version.id)" --sort-by="~version.createTime" | tail -n +2 | xargs -r gcloud app versions delete --project=${ATAR_PROJECT_DEV} --quiet
-      shell: bash
-
-    # - name: Send Message to Slack
-    #   uses: 8398a7/action-slack@v3
-    #   with:
-    #     status: ${{job.status}}
-    #     username: "DEPLOY_FC|${{github.event.repository.name}}|${{ inputs.TAG }}"
-    #     author_name: ${{github.workflow}}
-    #     fields: repo,message,commit,author,action,eventName,ref,workflow,job,took,pullRequest
-    #   if: always()
+    # - name: GAE Version
+    #   run: |
+    #     gcloud app versions list --project=${ATAR_PROJECT_DEV} --service ${{ inputs.SVC_NAME }} --format="value(version.id)" --sort-by="~version.createTime" | tail -n +2 | xargs -r gcloud app versions delete --project=${ATAR_PROJECT_DEV} --quiet
+    #   shell: bash
