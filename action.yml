@@ -19,42 +19,23 @@ runs:
     - name: Git checkout
       uses: actions/checkout@v3
 
-    - name: Update Library
-      run: |
-        echo "${{ inputs.SSH_PRIV_KEY_LIBRARY }}" > ssh-rsa.key
-        chmod 400 ssh-rsa.key
-        mkdir /root/.ssh && touch /root/.ssh/known_hosts
-        eval $(ssh-agent) && ssh-add ssh-rsa.key
-        ssh-keyscan -H github.com >> /root/.ssh/known_hosts
-        chmod +x ./update_library.sh && ./update_library.sh -b main
-        cat ./library/requirements.txt >> requirements.txt
-      shell: bash
-
     - name: Export variables
       run: |
         TAG=$(atar-cli ci -j=${GITHUB_REF_NAME} 2>&1)
         echo "TAG=${TAG}" >> $GITHUB_ENV
       shell: bash
 
-    - name: GCloud Deploy - HML
-      run: echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
-      shell: bash
-    - name: Deploy ATAR_DEV ${{github.event.repository.name}} - ${{env.TAG}}
-      run: ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.dev.yaml -v=${{env.TAG}} --no-promote
+    - name: Build FRONTEND STAGING
+      run: cd erp; rm -rf node_modules dist; sudo npm install; npm run build-staging
       shell: bash
 
-    # - name: GAE Key
-    #   run: |
-    #     echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
-    #   shell: bash
-    
-    # - name: GAE Deploy ${{github.event.repository.name}}
-    #   run: |
-    #     BRANCH=$(echo ${GITHUB_REF#refs/heads/fc/})
-    #     ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.${{ inputs.DEPLOY_ENV }}.yaml -v=$BRANCH --no-promote
-    #   shell: bash
+    - name: GCloud Auth ATAR
+      run: echo ${ATAR_CREDENTIALS}|gcloud auth activate-service-account --key-file=-
+      shell: bash
 
-    # - name: GAE Version
-    #   run: |
-    #     gcloud app versions list --project=${ATAR_PROJECT_DEV} --service ${{ inputs.SVC_NAME }} --format="value(version.id)" --sort-by="~version.createTime" | tail -n +2 | xargs -r gcloud app versions delete --project=${ATAR_PROJECT_DEV} --quiet
-    #   shell: bash
+    - name: STAGING -> Deploy FRONTEND ${{env.repo_name}} - ${{env.app_version}}
+      run: |
+        cd erp
+        ${RETRY} gcloud -q --project=${ATAR_PROJECT} app deploy app.porto-hml.yaml -v=${{env.TAG}} --no-promote
+        ${RETRY} gcloud -q --project=${ATAR_PROJECT} app deploy app.atar-hml.yaml -v=${{env.TAG}} --no-promote
+      shell: bash
