@@ -30,12 +30,12 @@ runs:
       shell: bash
 
     - name: GCloud Auth ATAR
-      run: echo ${ATAR_CREDENTIALS}|gcloud auth activate-service-account --key-file=-
+      run: echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
       shell: bash
 
     - name: STAGING -> Deploy FRONTEND ${{env.repo_name}} - ${{env.app_version}}
       run: |
         cd erp
-        ${RETRY} gcloud -q --project=${ATAR_PROJECT} app deploy app.porto-hml.yaml -v=${{env.TAG}} --no-promote
-        ${RETRY} gcloud -q --project=${ATAR_PROJECT} app deploy app.atar-hml.yaml -v=${{env.TAG}} --no-promote
+        ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.porto-hml.yaml -v=${{env.TAG}} --no-promote
+        ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.atar-hml.yaml -v=${{env.TAG}} --no-promote
       shell: bash
