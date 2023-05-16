@@ -40,7 +40,7 @@ runs:
       run: echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
       shell: bash
     - name: Deploy ATAR_DEV ${{github.event.repository.name}} - ${{env.TAG}}
-      run: ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.dev.yaml -v=${{env.TAG}} --promote
+      run: ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.dev.yaml -v=${{env.TAG}} --no-promote
       shell: bash
 
     # - name: GAE Key
