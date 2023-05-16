@@ -19,17 +19,6 @@ runs:
     - name: Git checkout
       uses: actions/checkout@v3
 
-    - name: Update Library
-      run: |
-        echo "${{ inputs.SSH_PRIV_KEY_LIBRARY }}" > ssh-rsa.key
-        chmod 400 ssh-rsa.key
-        mkdir /root/.ssh && touch /root/.ssh/known_hosts
-        eval $(ssh-agent) && ssh-add ssh-rsa.key
-        ssh-keyscan -H github.com >> /root/.ssh/known_hosts
-        chmod +x ./update_library.sh && ./update_library.sh -b main
-        cat ./library/requirements.txt >> requirements.txt
-      shell: bash
-
     - name: Export variables
       run: |
         TAG=$(atar-cli ci -j=${GITHUB_REF_NAME} 2>&1)
