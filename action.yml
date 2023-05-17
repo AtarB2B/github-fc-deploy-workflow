@@ -19,7 +19,6 @@ runs:
     - name: Export variables
       run: |
         TAG=$(atar-cli ci -j=${GITHUB_REF_NAME} 2>&1)
-        RETRY: "retry -l -i=60s -c=3" >> $GITHUB_ENV
         echo "TAG=${TAG}" >> $GITHUB_ENV
       shell: bash
 
@@ -27,5 +26,5 @@ runs:
       run: echo ${{ inputs.ATAR_CREDENTIALS }} | gcloud auth activate-service-account --key-file=-
       shell: bash
     - name: Deploy ATAR_DEV ${{github.event.repository.name}} - ${{env.TAG}}
-      run: ${RETRY} gcloud -q --project=${{ inputs.ATAR_PROJECT }} app deploy app.yaml -v=${{env.TAG}} --no-promote
+      run: retry -l -i=60s -c=3 gcloud -q --project=${{ inputs.ATAR_PROJECT }} app deploy app.yaml -v=${{env.TAG}} --no-promote
       shell: bash
