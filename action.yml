@@ -2,14 +2,6 @@ name: Deploy Feature Candidate
 
 description: Deploy Feature Candidate / FC
 
-inputs:
-  ATAR_PROJECT:
-    required: true
-    description: ""
-  ATAR_CREDENTIALS:
-    required: true
-    description: ""
-
 runs:
   using: "composite"
   steps:
@@ -23,11 +15,8 @@ runs:
       shell: bash
 
     - name: GCloud Deploy - HML
-      run: |
-        echo ${{ inputs.ATAR_CREDENTIALS }}|gcloud auth activate-service-account --key-file=-
-        echo "------------------------------------------ passei --------------------------------------------------------"
+      run: echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
       shell: bash
-
     - name: Deploy ATAR_DEV ${{github.event.repository.name}} - ${{env.TAG}}
-      run: ${RETRY} gcloud -q --project=${{ inputs.ATAR_PROJECT }} app deploy app.yaml -v=${{env.TAG}} --no-promote
+      run: ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.yaml -v=${{env.TAG}} --no-promote
       shell: bash
