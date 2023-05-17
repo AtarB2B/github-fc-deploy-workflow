@@ -15,34 +15,16 @@ runs:
   steps:
     - name: Checkout
       uses: actions/checkout@v2
-    - name: Set Local DataTime
-      run: echo "LOCAL_DATE=$(date +'%Y%m%d-%H%M')" >> $GITHUB_ENV; echo "CURRENT_DATE=$(date +'%Y-%m-%d %H:%M')" >> $GITHUB_ENV
-      shell: bash
-
-    - name: Set Vars
+    
+    - name: Export variables
       run: |
-         echo "slack_name=Deploy-${GITHUB_REPOSITORY#*/}-${GITHUB_REF_NAME^^}" >> $GITHUB_ENV
-         echo "repo_name=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
-         echo "MESSAGE=$(echo '${{github.event.head_commit.message}}'|head -n 1)" >> $GITHUB_ENV
-         echo "app_tar=${GITHUB_REPOSITORY#*/}-${{github.ref_name}}-${{env.LOCAL_DATE}}" >> $GITHUB_ENV
-         echo "app_version=${{github.ref_name}}-${{env.LOCAL_DATE}}" >> $GITHUB_ENV
+        TAG=$(atar-cli ci -j=${GITHUB_REF_NAME} 2>&1)
+        echo "TAG=${TAG}" >> $GITHUB_ENV
       shell: bash
 
-
-    - name: Composer Install Vendor
-      run: cd app/; composer install --no-dev
+    - name: GCloud Deploy - HML
+      run: echo ${{ inputs.ATAR_CREDENTIALS }}|gcloud auth activate-service-account --key-file=-
       shell: bash
-
-    - name: GCloud Auth ATAR
-      run: echo ${ATAR_CREDENTIALS}|gcloud auth activate-service-account --key-file=-
-      shell: bash
-
-    - name: QA -> Deploy ATAR ${{env.repo_name}} - ${{env.app_version}}
-      if: ${{github.ref_name == 'qa'}}
-      run: ${RETRY} gcloud -q --project=${ATAR_PROJECT} app deploy app.yaml -v=qa --no-promote
-      shell: bash
-
-    - name: STAGING -> Deploy ATAR ${{env.repo_name}} - ${{env.app_version}}
-      if: ${{github.ref_name == 'staging'}}
-      run: ${RETRY} gcloud -q --project=${ATAR_PROJECT} app deploy app.yaml -v=staging --promote
+    - name: Deploy ATAR_DEV ${{github.event.repository.name}} - ${{env.TAG}}
+      run: ${RETRY} gcloud -q --project=${{ inputs.ATAR_PROJECT }} app deploy app.yaml -v=${{env.TAG}} --no-promote
       shell: bash
