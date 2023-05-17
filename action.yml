@@ -19,6 +19,7 @@ runs:
     - name: Export variables
       run: |
         TAG=$(atar-cli ci -j=${GITHUB_REF_NAME} 2>&1)
+        RETRY: "retry -l -i=60s -c=3" >> $GITHUB_ENV
         echo "TAG=${TAG}" >> $GITHUB_ENV
       shell: bash
 
