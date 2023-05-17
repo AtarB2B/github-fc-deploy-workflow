@@ -3,58 +3,46 @@ name: Deploy Feature Candidate
 description: Deploy Feature Candidate / FC
 
 inputs:
-  DEPLOY_ENV:
+  ATAR_PROJECT:
     required: true
-    description: ENV
-  SVC_NAME:
+    description: ""
+  ATAR_CREDENTIALS:
     required: true
-    description: Name service
-  SSH_PRIV_KEY_LIBRARY:
-    required: true
-    description: SSH_PRIV_KEY_LIBRARY
+    description: ""
 
 runs:
   using: "composite"
   steps:
-    - name: Git checkout
-      uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Set Local DataTime
+      run: echo "LOCAL_DATE=$(date +'%Y%m%d-%H%M')" >> $GITHUB_ENV; echo "CURRENT_DATE=$(date +'%Y-%m-%d %H:%M')" >> $GITHUB_ENV
+      shell: bash
 
-    - name: Update Library
+    - name: Set Vars
       run: |
-        echo "${{ inputs.SSH_PRIV_KEY_LIBRARY }}" > ssh-rsa.key
-        chmod 400 ssh-rsa.key
-        mkdir /root/.ssh && touch /root/.ssh/known_hosts
-        eval $(ssh-agent) && ssh-add ssh-rsa.key
-        ssh-keyscan -H github.com >> /root/.ssh/known_hosts
-        chmod +x ./update_library.sh && ./update_library.sh -b main
-        cat ./library/requirements.txt >> requirements.txt
+         echo "slack_name=Deploy-${GITHUB_REPOSITORY#*/}-${GITHUB_REF_NAME^^}" >> $GITHUB_ENV
+         echo "repo_name=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
+         echo "MESSAGE=$(echo '${{github.event.head_commit.message}}'|head -n 1)" >> $GITHUB_ENV
+         echo "app_tar=${GITHUB_REPOSITORY#*/}-${{github.ref_name}}-${{env.LOCAL_DATE}}" >> $GITHUB_ENV
+         echo "app_version=${{github.ref_name}}-${{env.LOCAL_DATE}}" >> $GITHUB_ENV
       shell: bash
 
-    - name: Export variables
-      run: |
-        TAG=$(atar-cli ci -j=${GITHUB_REF_NAME} 2>&1)
-        echo "TAG=${TAG}" >> $GITHUB_ENV
+
+    - name: Composer Install Vendor
+      run: cd app/; composer install --no-dev
       shell: bash
 
-    - name: GCloud Deploy - HML
-      run: echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
-      shell: bash
-    - name: Deploy ATAR_DEV ${{github.event.repository.name}} - ${{env.TAG}}
-      run: ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.dev.yaml -v=${{env.TAG}} --no-promote
+    - name: GCloud Auth ATAR
+      run: echo ${ATAR_CREDENTIALS}|gcloud auth activate-service-account --key-file=-
       shell: bash
 
-    # - name: GAE Key
-    #   run: |
-    #     echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
-    #   shell: bash
-    
-    # - name: GAE Deploy ${{github.event.repository.name}}
-    #   run: |
-    #     BRANCH=$(echo ${GITHUB_REF#refs/heads/fc/})
-    #     ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.${{ inputs.DEPLOY_ENV }}.yaml -v=$BRANCH --no-promote
-    #   shell: bash
+    - name: QA -> Deploy ATAR ${{env.repo_name}} - ${{env.app_version}}
+      if: ${{github.ref_name == 'qa'}}
+      run: ${RETRY} gcloud -q --project=${ATAR_PROJECT} app deploy app.yaml -v=qa --no-promote
+      shell: bash
 
-    # - name: GAE Version
-    #   run: |
-    #     gcloud app versions list --project=${ATAR_PROJECT_DEV} --service ${{ inputs.SVC_NAME }} --format="value(version.id)" --sort-by="~version.createTime" | tail -n +2 | xargs -r gcloud app versions delete --project=${ATAR_PROJECT_DEV} --quiet
-    #   shell: bash
+    - name: STAGING -> Deploy ATAR ${{env.repo_name}} - ${{env.app_version}}
+      if: ${{github.ref_name == 'staging'}}
+      run: ${RETRY} gcloud -q --project=${ATAR_PROJECT} app deploy app.yaml -v=staging --promote
+      shell: bash
