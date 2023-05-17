@@ -23,7 +23,7 @@ runs:
       shell: bash
 
     - name: GCloud Deploy - HML
-      run: echo ${{ inputs.ATAR_CREDENTIALS }}|gcloud auth activate-service-account --key-file=-
+      run: echo ${{ inputs.ATAR_CREDENTIALS }} | gcloud auth activate-service-account --key-file=-
       shell: bash
     - name: Deploy ATAR_DEV ${{github.event.repository.name}} - ${{env.TAG}}
       run: ${RETRY} gcloud -q --project=${{ inputs.ATAR_PROJECT }} app deploy app.yaml -v=${{env.TAG}} --no-promote
