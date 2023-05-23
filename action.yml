@@ -19,15 +19,16 @@ runs:
     - name: Git checkout
       uses: actions/checkout@v3
 
-    - name: Update Library
-      run: |
-        echo "${{ inputs.SSH_PRIV_KEY_LIBRARY }}" > ssh-rsa.key
-        chmod 400 ssh-rsa.key
-        mkdir /root/.ssh && touch /root/.ssh/known_hosts
-        eval $(ssh-agent) && ssh-add ssh-rsa.key
-        ssh-keyscan -H github.com >> /root/.ssh/known_hosts
-        chmod +x ./update_library.sh && ./update_library.sh -b main
-        cat ./library/requirements.txt >> requirements.txt
+    - name: Upgrade wheel, setuptools, virtualenv
+      run: python2 --version; python2 -m pip install --upgrade pip wheel setuptools virtualenv
+      shell: bash
+    
+    - name: Get SSH_KEY LIBS-BACKEND
+      run: echo "${{inputs.SSH_PRIV_KEY_LIBRARY}}" > ssh-rsa.key ; atar-cli deploy --set-ssh=ssh-rsa.key ; rm -f ssh-rsa.key
+      shell: bash
+    
+    - name: Update Client/Update Third Party
+      run: atar-cli --update-all
       shell: bash
 
     - name: Export variables
@@ -39,22 +40,7 @@ runs:
     - name: GCloud Deploy - HML
       run: echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
       shell: bash
-    - name: Deploy ATAR_DEV ${{github.event.repository.name}} - ${{env.TAG}}
-      run: ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.dev.yaml -v=${{env.TAG}} --no-promote
-      shell: bash
-
-    # - name: GAE Key
-    #   run: |
-    #     echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
-    #   shell: bash
     
-    # - name: GAE Deploy ${{github.event.repository.name}}
-    #   run: |
-    #     BRANCH=$(echo ${GITHUB_REF#refs/heads/fc/})
-    #     ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.${{ inputs.DEPLOY_ENV }}.yaml -v=$BRANCH --no-promote
-    #   shell: bash
-
-    # - name: GAE Version
-    #   run: |
-    #     gcloud app versions list --project=${ATAR_PROJECT_DEV} --service ${{ inputs.SVC_NAME }} --format="value(version.id)" --sort-by="~version.createTime" | tail -n +2 | xargs -r gcloud app versions delete --project=${ATAR_PROJECT_DEV} --quiet
-    #   shell: bash
+    - name: Deploy ATAR_DEV ${{github.event.repository.name}} - ${{env.TAG}}
+      run: ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.yaml -v=${{env.TAG}} --no-promote
+      shell: bash
