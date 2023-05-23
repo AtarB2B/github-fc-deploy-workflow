@@ -19,6 +19,10 @@ runs:
     - name: Git checkout
       uses: actions/checkout@v3
 
+    - name: Permissions
+      run: chown -R $(id -u):$(id -g) $PWD
+      shell: bash
+      
     - name: Upgrade wheel, setuptools, virtualenv
       run: python2 --version; python2 -m pip install --upgrade pip wheel setuptools virtualenv
       shell: bash
