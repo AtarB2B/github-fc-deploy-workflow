@@ -41,10 +41,23 @@ runs:
         echo "TAG=${TAG}" >> $GITHUB_ENV
       shell: bash
 
+    - name: Check Credentials and Project
+      id: project_credential
+      run: |
+        if [[ (${{ inputs.DEPLOY_ENV }} == 'dev') ]]
+        then
+            echo '::set-output name=PROJECT::$ATAR_PROJECT_DEV'
+            echo '::set-output name=CREDENTIALS::$ATAR_CREDENTIALS_DEV'
+        else
+            echo '::set-output name=PROJECT::$ATAR_PROJECT'
+            echo '::set-output name=CREDENTIALS::$ATAR_CREDENTIALS'
+        fi
+      shell: bash
+
     - name: GCloud Deploy - HML
-      run: echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
+      run: echo ${{steps.project_credential.outputs.CREDENTIALS}}|gcloud auth activate-service-account --key-file=-
       shell: bash
     
     - name: Deploy ATAR_DEV ${{github.event.repository.name}} - ${{env.TAG}}
-      run: ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.yaml -v=${{env.TAG}} --no-promote
+      run: ${RETRY} gcloud -q --project=${{steps.project_credential.outputs.PROJECT}} app deploy app.yaml -v=${{env.TAG}} --no-promote
       shell: bash
