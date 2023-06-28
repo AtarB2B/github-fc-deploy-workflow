@@ -38,7 +38,7 @@ runs:
     - name: Export variables
       run: |
         TAG=$(atar-cli ci -j=${GITHUB_REF_NAME} 2>&1)
-        echo "TAG=${TAG}" >> $GITHUB_ENV
+        echo "TAG=${TAG}" 567>> $GITHUB_ENV
       shell: bash
 
     - name: GCloud Deploy - HML
