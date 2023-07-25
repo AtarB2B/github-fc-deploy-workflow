@@ -9,9 +9,9 @@ inputs:
   SVC_NAME:
     required: true
     description: Name service
-  SSH_PRIV_KEY_LIBRARY:
-    required: true
-    description: SSH_PRIV_KEY_LIBRARY
+  # SSH_PRIV_KEY_LIBRARY:
+  #   required: true
+  #   description: SSH_PRIV_KEY_LIBRARY
 
 runs:
   using: "composite"
