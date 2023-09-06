@@ -26,7 +26,7 @@ runs:
       shell: bash
 
     - name: Build FRONTEND STAGING
-      run: cd erp; rm -rf node_modules dist; sudo npm install; npm run build-staging
+      run: rm -rf node_modules dist; sudo npm install; npm run build-staging
       shell: bash
 
     - name: GCloud Auth ATAR
