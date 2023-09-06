@@ -25,16 +25,19 @@ runs:
         echo "TAG=${TAG}" >> $GITHUB_ENV
       shell: bash
 
-    - name: Build FRONTEND STAGING
-      run: rm -rf node_modules dist; sudo npm install; npm run build-staging
-      shell: bash
-
     - name: GCloud Auth ATAR
-      run: echo ${ATAR_CREDENTIALS_DEV}|gcloud auth activate-service-account --key-file=-
+      run: |
+          echo $ATAR_CREDENTIALS|gcloud auth activate-service-account --key-file=-
+          echo @atarb2b:registry=https://${ARTIFACT_LOCATION}-npm.pkg.dev/${ATAR_PROJECT}/atar-fe-cli/ > .npmrc
+          echo '//${ARTIFACT_LOCATION}-npm.pkg.dev/${ATAR_PROJECT}/atar-fe-cli/:always-auth=true' >> .npmrc
+          npx google-artifactregistry-auth --repo-config=.npmrc --credential-config=.npmrc
       shell: bash
 
-    - name: STAGING -> Deploy FRONTEND ${{env.repo_name}} - ${{env.app_version}}
+    - name: Build FRONTEND STAGING
+      run: rm -rf node_modules dist; sudo npm install; npm run build
+      shell: bash
+
+    - name: STAGING -> Deploy INTERNET-BANKING ${{env.repo_name}} - ${{env.app_version}}
       run: |
-        ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.porto-hml.yaml -v=${{env.TAG}} --no-promote
-        ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.atar-hml.yaml -v=${{env.TAG}} --no-promote
+        ${RETRY} gcloud -q --project=${ATAR_PROJECT_DEV} app deploy app.yaml -v=${{env.TAG}} --no-promote --no-cache
       shell: bash
